@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1 AS builder
+# Fusiora: pinned to 1.3.14 - bun 1.4+ rejects upstream bun.lock ("Invalid git dependency tag" on the erlpack git dependency)
+FROM oven/bun:1.3.14 AS builder
 
 WORKDIR /build
 
