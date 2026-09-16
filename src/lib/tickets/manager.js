@@ -1099,28 +1099,51 @@ module.exports = class TicketManager {
 			!ticket.feedback
 		) {
 			return await interaction.showModal(this.buildFeedbackModal(ticket.guild.locale, {
-				next: 'requestClose',
+				next: 'closeNow',
 				reason, // known issue: a reason longer than a few words will cause an error due to 100 character custom_id limit
 			}));
 		}
 
-		// not showing feedback, so send the close request
+		// not showing feedback, so close the ticket straight away
 
 		// defer asap
 		await interaction.deferReply();
 
-		// if the creator isn't in the guild , close the ticket immediately
-		// (although leaving should cause the ticket to be closed anyway)
-		try {
-			await interaction.guild.members.fetch(ticket.createdById);
-		} catch {
-			return this.finallyClose(ticket.id, { reason });
-		}
-
-		this.requestClose(interaction, reason);
+		await this.closeNow(interaction, reason);
 	}
 
 	/**
+	 * close the ticket immediately, without asking the other party (user/staff) to accept the request
+	 * @param {import("discord.js").ChatInputCommandInteraction
+	 * | import("discord.js").ButtonInteraction
+	 * | import("discord.js").ModalSubmitInteraction} interaction
+	 * @param {string} reason
+	 */
+	async closeNow(interaction, reason) {
+		const ticket = await this.getTicket(interaction.channel.id);
+		const getMessage = this.client.i18n.getLocale(ticket.guild.locale);
+		await interaction.editReply({
+			embeds: [
+				new ExtendedEmbedBuilder({
+					iconURL: interaction.guild.iconURL(),
+					text: ticket.guild.footer,
+				})
+					.setColor(ticket.guild.successColour)
+					.setTitle(getMessage('ticket.close.closed.title'))
+					.setDescription(getMessage('ticket.close.closed.description')),
+			],
+		});
+		await new Promise(resolve => setTimeout(resolve, 3e3));
+		await this.finallyClose(ticket.id, {
+			closedBy: interaction.user.id,
+			reason,
+		});
+	}
+
+	/**
+	 * legacy: sends a close request that the other party has to accept.
+	 * no longer used by the close button / `/close` command (see `closeNow`),
+	 * kept so that already-sent close requests with accept/reject buttons keep working.
 	 * @param {import("discord.js").ChatInputCommandInteraction
 	 * | import("discord.js").ButtonInteraction
 	 * | import("discord.js").ModalSubmitInteraction} interaction

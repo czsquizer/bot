@@ -46,12 +46,10 @@ module.exports = class FeedbackModal extends Modal {
 		});
 
 
-		if (id.next === 'requestClose') await client.tickets.requestClose(interaction, id.reason);
-		else if (id.next === 'acceptClose') await client.tickets.acceptClose(interaction);
-
 		const getMessage = client.i18n.getLocale(ticket.guild.locale);
 
-		// `followUp` must go after `reply`/`editReply` (the above)
+		// the interaction is already deferred (above), so `followUp` is allowed here.
+		// it must be sent BEFORE closing, because closing deletes the channel
 		if (comment?.length > 0 && rating !== null) {
 			await interaction.followUp({
 				embeds: [
@@ -65,5 +63,9 @@ module.exports = class FeedbackModal extends Modal {
 				flags: MessageFlags.Ephemeral,
 			});
 		}
+
+		// `requestClose` is kept only for modals opened before this change; both now close immediately
+		if (id.next === 'closeNow' || id.next === 'requestClose') await client.tickets.closeNow(interaction, id.reason);
+		else if (id.next === 'acceptClose') await client.tickets.acceptClose(interaction);
 	}
 };

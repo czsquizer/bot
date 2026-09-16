@@ -71,7 +71,7 @@ commands:
         description: Only staff members can claim tickets.
         title: ❌ Error
     close:
-      description: Request a ticket to be closed
+      description: Close the ticket
       invalid_time:
         description: "`{input}` is not a valid time format."
         title: ❌ Invalid

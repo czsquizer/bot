@@ -71,7 +71,7 @@ commands:
         description: Pouze administrátoři mohou převzít tickety.
         title: ❌ Chyba
     close:
-      description: Požádat o uzavření ticketu
+      description: Uzavřít ticket
       invalid_time:
         title: ❌ Neplatný
         description: '`{input}` není platný formát času.'
